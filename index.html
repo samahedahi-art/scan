@@ -1,18 +1,17 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 
-<!-- Viewport واحد فقط (مهم للآيفون) -->
 <meta name="viewport"
 content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Iris Verify">
-<link rel="apple-touch-icon" href="icon.png">
 
-<title>Iris Scan</title>
+<link rel="apple-touch-icon" href="icon.png">
+<title>Face / Iris ID</title>
 
 <style>
 body{
@@ -97,19 +96,17 @@ p{font-size:14px}
   to{top:110%}
 }
 
-/* اهتزاز وهمي للآيفون */
-@keyframes shake {
+/* اهتزاز */
+@keyframes shake{
   0%{transform:translateX(0)}
   25%{transform:translateX(-4px)}
   50%{transform:translateX(4px)}
   75%{transform:translateX(-4px)}
   100%{transform:translateX(0)}
 }
-.shake{
-  animation:shake .35s;
-}
+.shake{animation:shake .35s}
 
-/* التقدم */
+/* شريط التقدم */
 .progress-box{
   background:#222;
   border-radius:12px;
@@ -131,14 +128,29 @@ p{font-size:14px}
 }
 .fail{color:#ff5252}
 .success{color:#2cff00}
+
+/* النسبة المئوية داخل العين */
+.percent{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:28px;
+  font-weight:bold;
+  color:#00ffaa;
+  text-shadow:0 0 12px #00ffaa;
+  z-index:5;
+  display:none;
+}
 </style>
 </head>
 
 <body>
 
 <div class="card">
-  <h1>نظام التحقق ببصمة العين</h1>
-  <p>اضغط على العين لبدء الفحص</p>
+  <h1>Face / Iris ID</h1>
+  <p>ضع عينك داخل الإطار لإكمال التحقق</p>
 
   <div class="eye-frame" onclick="startScan()">
     <img src="عين٢.png" class="eye-img" id="eyeEmpty">
@@ -146,6 +158,8 @@ p{font-size:14px}
     <div class="fake-camera" id="camera">
       <div class="laser"></div>
     </div>
+
+    <div class="percent" id="percent">0%</div>
 
     <img src="عين.jpeg" class="eye-img" id="eyeFull">
   </div>
@@ -169,6 +183,7 @@ const camera = document.getElementById("camera");
 const bar = document.getElementById("bar");
 const msg = document.getElementById("msg");
 const eyeFrame = document.querySelector(".eye-frame");
+const percent = document.getElementById("percent");
 
 const touchSound = document.getElementById("touchSound");
 const rejectSound = document.getElementById("rejectSound");
@@ -188,24 +203,36 @@ function startScan(){
 
     msg.style.display="block";
     msg.className="msg fail";
-    msg.innerHTML="❌ فشل التحقق – أعد المحاولة";
+    msg.innerHTML="❌  فشل التحقق – أعد المحاولة بالعين الأخرى";
 
     firstTry = false;
     return;
   }
 
-  /* المسح */
-  msg.style.display="none";
+  /* بدء المسح */
   eyeEmpty.style.display="none";
+  eyeFull.style.display="none";
   camera.style.display="block";
   bar.style.width="0%";
+
+  percent.style.display="flex";
+  percent.innerText = "0%";
+
+  msg.style.display="block";
+  msg.className="msg";
+  msg.innerHTML="🔐 Encrypting Iris Data…";
 
   let progress = 0;
   const timer = setInterval(()=>{
     progress += Math.random()*15 + 10;
+    if(progress > 100) progress = 100;
+
+    bar.style.width = progress + "%";
+    percent.innerText = Math.floor(progress) + "%";
 
     if(progress >= 100){
       clearInterval(timer);
+
       camera.style.display="none";
       eyeFull.style.display="block";
 
@@ -214,17 +241,19 @@ function startScan(){
       eyeFrame.classList.add("shake");
       setTimeout(()=>eyeFrame.classList.remove("shake"),250);
 
-      msg.style.display="block";
-      msg.className="msg success";
-      msg.innerHTML = `
-        ✔ تم التحقق بنجاح<br><br>
-        😄 تم حفظ بصماتك<br>
-        كان ممكن نهكرك ونستخدم البصمات في شي مو كويس<br>
-        بس إحنا طيبين وما نسويها 😉
-      `;
-    }
+      percent.innerText = "100%";
+      setTimeout(()=>percent.style.display="none",600);
 
-    bar.style.width = progress + "%";
+      msg.className = "msg success";
+      msg.innerHTML = `
+✔ تم التحقق بنجاح<br><br>
+
+تم تشفير وحفظ بصمة العين بنجاح<br><br>
+⚠️ تنبيه توعوي:<br>
+كان من الممكن استغلال هذه البيانات بشكل غير آمن،
+ونهكرك، لكن احنا طيبين وما نسويها 😉
+`;
+    }
   },400);
 }
 </script>
