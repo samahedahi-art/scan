@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>نظام التحقق ببصمة العين</title>
+
+<style>
+body{
+  background:#050505;
+  color:#e6e6e6;
+  font-family:Tahoma;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  margin:0;
+}
+
+.card{
+  background:#0c0c0c;
+  border:1px solid #2cff00;
+  border-radius:16px;
+  padding:30px;
+  width:420px;
+  text-align:center;
+  box-shadow:0 0 30px rgba(44,255,0,.25);
+}
+
+h1{color:#2cff00;font-size:20px;margin-bottom:10px}
+p{font-size:14px;line-height:1.6}
+.note{font-size:12px;color:#aaa}
+
+.fingerprint{
+  margin:26px 0;
+  cursor:pointer;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+#hand{
+  width:130px; /* حجم صورة العين قبل الفحص */
+}
+
+/* صورة النتيجة النهائية */
+#fingerprintFinal{
+  width:200px;
+  display:none;
+  margin:20px auto;
+  animation:fadeZoom .8s forwards;
+}
+
+@keyframes fadeZoom{
+  from{opacity:0;transform:scale(.6)}
+  to{opacity:1;transform:scale(1)}
+}
+
+/* نافذة الفحص */
+.toast{
+  position:fixed;
+  top:-300px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#111;
+  border:2px solid #2cff00;
+  width:360px;
+  padding:20px;
+  border-radius:14px;
+  text-align:center;
+  box-shadow:0 0 30px rgba(44,255,0,.6);
+  transition:.5s;
+  opacity:0;
+}
+.toast.show{top:20px;opacity:1}
+
+/* صندوق فحص العين */
+.scan-box{
+  position:relative;
+  width:140px;
+  height:140px;
+  margin:12px auto;
+  overflow:hidden;
+  border-radius:50%;
+}
+
+/* صورة العين */
+.scan-eye{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  animation:pulse 1.2s infinite;
+}
+
+/* نبض */
+@keyframes pulse{
+  0%{transform:scale(1);opacity:.85}
+  50%{transform:scale(1.05);opacity:1}
+  100%{transform:scale(1);opacity:.85}
+}
+
+/* النص المتحرك */
+.scan-text{
+  position:absolute;
+  top:45%;
+  left:-120%;
+  width:200%;
+  font-size:12px;
+  color:#00ffcc;
+  letter-spacing:1px;
+  white-space:nowrap;
+  text-shadow:0 0 8px rgba(0,255,204,.8);
+  animation:scanMove 1.4s linear infinite;
+}
+
+@keyframes scanMove{
+  from{left:-120%}
+  to{left:120%}
+}
+
+/* خط الليزر الأحمر */
+.laser-line{
+  position:absolute;
+  top:-10%;
+  left:0;
+  width:100%;
+  height:4px;
+  background:linear-gradient(
+    90deg,
+    transparent,
+    #ff2b2b,
+    #ff6b6b,
+    #ff2b2b,
+    transparent
+  );
+  box-shadow:0 0 15px #ff2b2b;
+  animation:laserScan 1.4s linear infinite;
+}
+
+@keyframes laserScan{
+  from{top:-10%}
+  to{top:110%}
+}
+
+/* وضع النجاح */
+.scan-box.success .laser-line{
+  background:linear-gradient(
+    90deg,
+    transparent,
+    #00ff66,
+    #7dff9f,
+    #00ff66,
+    transparent
+  );
+  box-shadow:0 0 18px #00ff66;
+}
+
+.scan-box.success .scan-text{
+  color:#00ff66;
+  text-shadow:0 0 10px rgba(0,255,102,.9);
+}
+
+/* شريط التقدم */
+.progress-box{
+  background:#222;
+  border-radius:12px;
+  height:18px;
+  overflow:hidden;
+  margin-top:12px;
+}
+.progress{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,#00ffaa,#2cff00);
+}
+
+/* رسالة الخطأ */
+#msg{
+  margin-top:10px;
+  color:#ff5252;
+  font-weight:bold;
+  display:none;
+}
+
+/* النتيجة */
+.warning{
+  display:none;
+  margin-top:20px;
+  border:2px solid #ff5252;
+  padding:18px;
+  border-radius:14px;
+}
+.warn{color:#ff5252;font-weight:bold}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h1>نظام التحقق ببصمة العين</h1>
+
+  <p>
+    فضلاً انظر للكاميرا لأخذ بصمة العين<br>
+    
+  </p>
+
+  <div class="fingerprint" onclick="startScan()">
+    <img id="hand" src="عين٢.png" alt="مسح العين">
+  </div>
+
+  <p id="msg"></p>
+
+  <img id="fingerprintFinal" src="عين.jpeg" alt="نتيجة">
+
+  <div class="warning" id="final">
+    <p class="warn">😄 تم حفظ بصمتك بنجاح!</p>
+
+    <p>
+      ✔️ التحقق اكتمل بنجاح<br>
+      كان ممكن نهكرك ونستخدمها  في أشياء مو تمام <br>
+      بس احنا طيبين مانسويها 
+    </p>
+
+    
+
+    <p class="warn">
+      الدرس الأمني:<br>
+      بصمتك غالية جداً <br>
+      لا تعطيها أي أحد .
+    </p>
+  </div>
+</div>
+
+<!-- نافذة الفحص -->
+<div class="toast" id="toast">
+  <p>
+    جاري فحص بصمة العين…<br>
+    <span class="note">(ثبت نظرك 👀)</span>
+  </p>
+
+  <div class="scan-box" id="scanBox">
+    <img src="عين.jpeg" class="scan-eye">
+    <div class="scan-text" id="scanText">SCANNING IRIS DATA...</div>
+    <div class="laser-line"></div>
+  </div>
+
+  <div class="progress-box">
+    <div class="progress" id="bar"></div>
+  </div>
+</div>
+
+<audio id="touchSound" src="vibarite.mp3"></audio>
+<audio id="rejectSound" src="reject.mp3"></audio>
+<audio id="alertSound" src="alert.mp3"></audio>
+
+<script>
+const toast = document.getElementById("toast");
+const bar = document.getElementById("bar");
+const hand = document.getElementById("hand");
+const msg = document.getElementById("msg");
+const final = document.getElementById("final");
+const fingerprintFinal = document.getElementById("fingerprintFinal");
+
+const scanBox = document.getElementById("scanBox");
+const scanText = document.getElementById("scanText");
+
+const touchSound = document.getElementById("touchSound");
+const rejectSound = document.getElementById("rejectSound");
+const alertSound = document.getElementById("alertSound");
+
+let step = 0;
+
+
+
+function startScan(){
+
+  /* المحاولة الأولى (فشل) */
+  if(step === 0){
+    touchSound.play();
+    rejectSound.play();
+    hand.style.display="none";
+
+    setTimeout(()=>{
+      hand.style.display="block";
+      msg.style.display="block";
+      msg.innerHTML="❌ فشل التحقق<br>حاول بالعين الأخرى";
+    },500);
+
+    step = 1;
+    return;
+  }
+
+  /* المحاولة الثانية (نجاح) */
+  touchSound.play();
+  msg.style.display="none";
+  hand.style.display="none";
+
+  toast.classList.add("show");
+  bar.style.width="0%";
+
+  let progress=0;
+  const timer=setInterval(()=>{
+    progress+=Math.random()*12+8;
+    if(progress>=100){
+      progress=100;
+      clearInterval(timer);
+
+      scanBox.classList.add("success");
+      scanText.innerText="VERIFICATION SUCCESSFUL ✓";
+
+      setTimeout(()=>{
+        toast.classList.remove("show");
+        alertSound.play();
+
+        fingerprintFinal.style.display="block";
+
+        
+        final.style.display="block";
+      },2000);
+    }
+    bar.style.width=progress+"%";
+  },350);
+}
+</script>
+
+</body>
+</html>
+
+
