@@ -2,6 +2,14 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- iOS Add to Home Screen -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Iris Verify">
+
+<link rel="apple-touch-icon" href="icon.png">
+
 <title>نظام التحقق ببصمة العين</title>
 
 <style>
@@ -12,16 +20,20 @@ body{
   display:flex;
   justify-content:center;
   align-items:center;
-  height:100vh;
+  min-height:100vh;
   margin:0;
+  -webkit-user-select:none;
+  user-select:none;
 }
 
+/* البطاقة */
 .card{
   background:#0c0c0c;
   border:1px solid #2cff00;
-  border-radius:16px;
-  padding:30px;
-  width:420px;
+  border-radius:18px;
+  padding:26px;
+  width:90%;
+  max-width:420px;
   text-align:center;
   box-shadow:0 0 30px rgba(44,255,0,.25);
 }
@@ -31,22 +43,19 @@ p{font-size:14px;line-height:1.6}
 .note{font-size:12px;color:#aaa}
 
 .fingerprint{
-  margin:26px 0;
+  margin:24px 0;
   cursor:pointer;
   display:flex;
   justify-content:center;
-  align-items:center;
 }
 
-#hand{
-  width:130px; /* حجم صورة العين قبل الفحص */
-}
+#hand{width:120px}
 
-/* صورة النتيجة النهائية */
+/* النتيجة */
 #fingerprintFinal{
-  width:200px;
+  width:180px;
   display:none;
-  margin:20px auto;
+  margin:18px auto;
   animation:fadeZoom .8s forwards;
 }
 
@@ -63,17 +72,19 @@ p{font-size:14px;line-height:1.6}
   transform:translateX(-50%);
   background:#111;
   border:2px solid #2cff00;
-  width:360px;
+  width:90%;
+  max-width:360px;
   padding:20px;
-  border-radius:14px;
+  border-radius:16px;
   text-align:center;
   box-shadow:0 0 30px rgba(44,255,0,.6);
   transition:.5s;
   opacity:0;
+  z-index:5;
 }
 .toast.show{top:20px;opacity:1}
 
-/* صندوق فحص العين */
+/* صندوق الفحص */
 .scan-box{
   position:relative;
   width:140px;
@@ -83,7 +94,6 @@ p{font-size:14px;line-height:1.6}
   border-radius:50%;
 }
 
-/* صورة العين */
 .scan-eye{
   width:100%;
   height:100%;
@@ -91,14 +101,12 @@ p{font-size:14px;line-height:1.6}
   animation:pulse 1.2s infinite;
 }
 
-/* نبض */
 @keyframes pulse{
   0%{transform:scale(1);opacity:.85}
   50%{transform:scale(1.05);opacity:1}
   100%{transform:scale(1);opacity:.85}
 }
 
-/* النص المتحرك */
 .scan-text{
   position:absolute;
   top:45%;
@@ -106,9 +114,7 @@ p{font-size:14px;line-height:1.6}
   width:200%;
   font-size:12px;
   color:#00ffcc;
-  letter-spacing:1px;
   white-space:nowrap;
-  text-shadow:0 0 8px rgba(0,255,204,.8);
   animation:scanMove 1.4s linear infinite;
 }
 
@@ -117,21 +123,13 @@ p{font-size:14px;line-height:1.6}
   to{left:120%}
 }
 
-/* خط الليزر الأحمر */
 .laser-line{
   position:absolute;
   top:-10%;
   left:0;
   width:100%;
   height:4px;
-  background:linear-gradient(
-    90deg,
-    transparent,
-    #ff2b2b,
-    #ff6b6b,
-    #ff2b2b,
-    transparent
-  );
+  background:linear-gradient(90deg,transparent,#ff2b2b,#ff6b6b,#ff2b2b,transparent);
   box-shadow:0 0 15px #ff2b2b;
   animation:laserScan 1.4s linear infinite;
 }
@@ -141,25 +139,13 @@ p{font-size:14px;line-height:1.6}
   to{top:110%}
 }
 
-/* وضع النجاح */
 .scan-box.success .laser-line{
-  background:linear-gradient(
-    90deg,
-    transparent,
-    #00ff66,
-    #7dff9f,
-    #00ff66,
-    transparent
-  );
+  background:linear-gradient(90deg,transparent,#00ff66,#7dff9f,#00ff66,transparent);
   box-shadow:0 0 18px #00ff66;
 }
 
-.scan-box.success .scan-text{
-  color:#00ff66;
-  text-shadow:0 0 10px rgba(0,255,102,.9);
-}
+.scan-box.success .scan-text{color:#00ff66}
 
-/* شريط التقدم */
 .progress-box{
   background:#222;
   border-radius:12px;
@@ -173,76 +159,137 @@ p{font-size:14px;line-height:1.6}
   background:linear-gradient(90deg,#00ffaa,#2cff00);
 }
 
-/* رسالة الخطأ */
+/* رسالة */
 #msg{
-  margin-top:10px;
   color:#ff5252;
   font-weight:bold;
   display:none;
 }
 
-/* النتيجة */
+/* التحذير */
 .warning{
   display:none;
-  margin-top:20px;
+  margin-top:18px;
   border:2px solid #ff5252;
-  padding:18px;
+  padding:16px;
   border-radius:14px;
 }
 .warn{color:#ff5252;font-weight:bold}
+
+/* شاشة السماح */
+.permission{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.9);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:10;
+}
+
+.perm-card{
+  background:#111;
+  border:2px solid #2cff00;
+  border-radius:18px;
+  padding:26px;
+  width:90%;
+  max-width:360px;
+  text-align:center;
+  box-shadow:0 0 30px rgba(44,255,0,.5);
+}
+
+.perm-card h2{color:#2cff00}
+.perm-card ul{list-style:none;padding:0;font-size:13px}
+.perm-card li{margin:6px 0;color:#ccc}
+
+.perm-card button{
+  background:#2cff00;
+  color:#000;
+  border:none;
+  border-radius:12px;
+  padding:12px 26px;
+  font-size:15px;
+  font-weight:bold;
+  cursor:pointer;
+}
+.a2hs{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.85);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:20;
+}
+
+.a2hs-card{
+  background:#111;
+  border:2px solid #2cff00;
+  border-radius:18px;
+  padding:24px;
+  width:90%;
+  max-width:360px;
+  text-align:center;
+  box-shadow:0 0 30px rgba(44,255,0,.6);
+}
+
+.a2hs-card h3{color:#2cff00}
+.a2hs-card p, .a2hs-card li{font-size:14px;color:#ccc}
+
+.a2hs-card button{
+  margin-top:14px;
+  background:#2cff00;
+  border:none;
+  border-radius:12px;
+  padding:10px 22px;
+  font-weight:bold;
+}
+
 </style>
 </head>
 
 <body>
 
+<!-- شاشة السماح -->
+<div class="permission" id="permissionScreen">
+  <div class="perm-card">
+    <h2>السماح بالوصول</h2>
+    <p>يتطلب النظام الإذن لاستخدام بصمة العين لأغراض التحقق الأمني</p>
+    <ul>
+      <li>🔒 استخدام محلي فقط</li>
+      <li>🚫 لا يتم التخزين</li>
+      <li>✅ محاكاة تعليمية</li>
+    </ul>
+    <button onclick="allowAccess()">السماح</button>
+  </div>
+</div>
+
 <div class="card">
   <h1>نظام التحقق ببصمة العين</h1>
-
-  <p>
-    فضلاً انظر للكاميرا لأخذ بصمة العين<br>
-    
-  </p>
+  <p>فضلاً انظر للكاميرا لأخذ بصمة العين</p>
 
   <div class="fingerprint" onclick="startScan()">
-    <img id="hand" src="عين٢.png" alt="مسح العين">
+    <img id="hand" src="عين٢.png">
   </div>
 
   <p id="msg"></p>
 
-  <img id="fingerprintFinal" src="عين.jpeg" alt="نتيجة">
+  <img id="fingerprintFinal" src="عين.jpeg">
 
   <div class="warning" id="final">
     <p class="warn">😄 تم حفظ بصمتك بنجاح!</p>
-
-    <p>
-      ✔️ التحقق اكتمل بنجاح<br>
-      كان ممكن نهكرك ونستخدمها  في أشياء مو تمام <br>
-      بس احنا طيبين مانسويها 
-    </p>
-
-    
-
-    <p class="warn">
-      الدرس الأمني:<br>
-      بصمتك غالية جداً <br>
-      لا تعطيها أي أحد .
-    </p>
+    <p>كان ممكن نستخدمها ضدك…<br>لكن الدرس هنا توعوي 😉</p>
+    <p class="warn">بصمتك غالية لا تعطيها أي أحد</p>
   </div>
 </div>
 
-<!-- نافذة الفحص -->
 <div class="toast" id="toast">
-  <p>
-    جاري فحص بصمة العين…<br>
-    <span class="note">(ثبت نظرك 👀)</span>
-  </p>
-
+  <p>جاري فحص بصمة العين…</p>
   <div class="scan-box" id="scanBox">
     <img src="عين.jpeg" class="scan-eye">
     <div class="scan-text" id="scanText">SCANNING IRIS DATA...</div>
     <div class="laser-line"></div>
   </div>
-
   <div class="progress-box">
     <div class="progress" id="bar"></div>
   </div>
@@ -259,7 +306,6 @@ const hand = document.getElementById("hand");
 const msg = document.getElementById("msg");
 const final = document.getElementById("final");
 const fingerprintFinal = document.getElementById("fingerprintFinal");
-
 const scanBox = document.getElementById("scanBox");
 const scanText = document.getElementById("scanText");
 
@@ -269,27 +315,32 @@ const alertSound = document.getElementById("alertSound");
 
 let step = 0;
 
+function vibrate(ms){
+  if(navigator.vibrate) navigator.vibrate(ms);
+}
 
+function allowAccess(){
+  document.getElementById("permissionScreen").style.display="none";
+  vibrate(120);
+}
 
 function startScan(){
-
-  /* المحاولة الأولى (فشل) */
   if(step === 0){
     touchSound.play();
     rejectSound.play();
+    vibrate([100,50,100]);
     hand.style.display="none";
 
     setTimeout(()=>{
       hand.style.display="block";
       msg.style.display="block";
-      msg.innerHTML="❌ فشل التحقق<br>حاول بالعين الأخرى";
+      msg.innerHTML="❌ فشل التحقق<br>حاول مرة أخرى";
     },500);
 
     step = 1;
     return;
   }
 
-  /* المحاولة الثانية (نجاح) */
   touchSound.play();
   msg.style.display="none";
   hand.style.display="none";
@@ -310,19 +361,28 @@ function startScan(){
       setTimeout(()=>{
         toast.classList.remove("show");
         alertSound.play();
-
+        vibrate(200);
         fingerprintFinal.style.display="block";
-
-        
         final.style.display="block";
-      },2000);
+      },1800);
     }
     bar.style.width=progress+"%";
   },350);
 }
 </script>
+<div class="a2hs" id="a2hs">
+  <div class="a2hs-card">
+    <h3>إضافة للتطبيق 📲</h3>
+    <p>
+      للحصول على أفضل تجربة، أضف النظام إلى الشاشة الرئيسية
+    </p>
+    <ol>
+      <li>اضغط على زر المشاركة ⬆️</li>
+      <li>اختر <b>Add to Home Screen</b></li>
+    </ol>
+    <button onclick="closeA2HS()">فهمت</button>
+  </div>
+</div>
 
 </body>
 </html>
-
-
